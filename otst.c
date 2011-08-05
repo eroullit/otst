@@ -120,8 +120,6 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 			ret = -ENOMEM;
 			goto err;
 		}
-		elem->probe.pre_handler = otst_handler;
-		elem->probe.post_handler = otst_handler_post_work;
 
 		len = strncpy_from_user(elem->symname, buffer, count);
 
@@ -133,7 +131,10 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 			goto err_sym;
 		}
 
+		elem->probe.pre_handler = otst_handler;
+		elem->probe.post_handler = otst_handler_post_work;
 		elem->probe.symbol_name = elem->symname;
+
 		if (!kallsyms_lookup_name(elem->probe.symbol_name)) {
 			printk(KERN_INFO "%s: %s is no symbol!\n",
 			       MODULE_NAME, elem->probe.symbol_name);
