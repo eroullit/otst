@@ -105,6 +105,7 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 			       size_t count, loff_t * pos)
 {
 	int ret;
+	size_t len;
 	unsigned long flags;
 	struct otst_kprobes_elem *elem;
 
@@ -121,11 +122,17 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 		}
 		elem->probe.pre_handler = otst_handler;
 		elem->probe.post_handler = otst_handler_post_work;
-		if (strncpy_from_user(elem->symname, buffer, count)) {
-			ret = -EFAULT;
+
+		len = strncpy_from_user(elem->symname, buffer, count);
+
+		if (len == 0) {
+			ret = -ERANGE;
+			goto err_sym;
+		} else if (len >= count) {
+			ret = -ENAMETOOLONG;
 			goto err_sym;
 		}
-		elem->symname[count - 1] = '\0';
+
 		elem->probe.symbol_name = elem->symname;
 		if (!kallsyms_lookup_name(elem->probe.symbol_name)) {
 			printk(KERN_INFO "%s: %s is no symbol!\n",
