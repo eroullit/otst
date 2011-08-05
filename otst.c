@@ -58,7 +58,6 @@ static void otst_handler_post_work(struct kprobe *kp, struct pt_regs *regs,
 static void otst_collect_garbage(void)
 {
 	int found;
-	unsigned long flags;
 	struct otst_kprobes_elem *elem;
 
 	do {
@@ -73,9 +72,9 @@ static void otst_collect_garbage(void)
 		}
 		rcu_read_unlock();
 		if (found) {
-			spin_lock_irqsave(&otst_kprobes_lock, flags);
+			spin_lock(&otst_kprobes_lock);
 			list_del_rcu(&elem->list);
-			spin_unlock_irqrestore(&otst_kprobes_lock, flags);
+			spin_unlock(&otst_kprobes_lock);
 			synchronize_rcu();
 			printk(KERN_INFO
 			       "%s: symbol %s unregistered!\n",
@@ -107,7 +106,6 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 {
 	int ret = 0;
 	size_t len = 0;
-	unsigned long flags;
 	struct otst_kprobes_elem *elem = NULL;
 
 	otst_collect_garbage();
@@ -156,9 +154,9 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 			       MODULE_NAME, elem->probe.symbol_name);
 		}
 
-		spin_lock_irqsave(&otst_kprobes_lock, flags);
+		spin_lock(&otst_kprobes_lock);
 		list_add_rcu(&elem->list, &otst_kprobes);
-		spin_unlock_irqrestore(&otst_kprobes_lock, flags);
+		spin_unlock(&otst_kprobes_lock);
 	}
 
  out:
