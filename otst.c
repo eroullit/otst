@@ -121,7 +121,7 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 		}
 		elem->probe.pre_handler = otst_handler;
 		elem->probe.post_handler = otst_handler_post_work;
-		if (copy_from_user(elem->symname, buffer, count)) {
+		if (strncpy_from_user(elem->symname, buffer, count)) {
 			ret = -EFAULT;
 			goto err_sym;
 		}
