@@ -125,7 +125,7 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 			ret = -EFAULT;
 			goto err_sym;
 		}
-		elem->symname[count - 1] = 0;
+		elem->symname[count - 1] = '\0';
 		elem->probe.symbol_name = elem->symname;
 		if (!kallsyms_lookup_name(elem->probe.symbol_name)) {
 			printk(KERN_INFO "%s: %s is no symbol!\n",
