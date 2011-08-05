@@ -67,9 +67,6 @@ static void otst_collect_garbage(void)
 			if (kprobe_disabled(&elem->probe)) {
 				found = 1;
 				unregister_kprobe(&elem->probe);
-				printk(KERN_INFO
-				       "%s: symbol %s unregistered!\n",
-				       MODULE_NAME, elem->symname);
 				break;
 			}
 		}
@@ -79,6 +76,9 @@ static void otst_collect_garbage(void)
 			list_del_rcu(&elem->list);
 			spin_unlock_irqrestore(&otst_kprobes_lock, flags);
 			synchronize_rcu();
+			printk(KERN_INFO
+			       "%s: symbol %s unregistered!\n",
+			       MODULE_NAME, elem->symname);
 			kfree(elem->symname);
 			kfree(elem);
 		}
