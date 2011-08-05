@@ -49,7 +49,7 @@ static int otst_handler(struct kprobe *kp, struct pt_regs *regs)
 }
 
 static void otst_handler_post_work(struct kprobe *kp, struct pt_regs *regs,
-				    unsigned long flags)
+				   unsigned long flags)
 {
 	disable_kprobe(kp);
 }
@@ -67,7 +67,8 @@ static void otst_collect_garbage(void)
 			if (kprobe_disabled(&elem->probe)) {
 				found = 1;
 				unregister_kprobe(&elem->probe);
-				printk(KERN_INFO "%s: symbol %s unregistered!\n",
+				printk(KERN_INFO
+				       "%s: symbol %s unregistered!\n",
 				       MODULE_NAME, elem->symname);
 				break;
 			}
@@ -100,8 +101,8 @@ static int otst_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, otst_proc_show, NULL);
 }
 
-static ssize_t otst_proc_write(struct file *file, const char __user *buffer,
-			       size_t count, loff_t *pos)
+static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
+			       size_t count, loff_t * pos)
 {
 	int ret;
 	unsigned long flags;
@@ -150,26 +151,26 @@ static ssize_t otst_proc_write(struct file *file, const char __user *buffer,
 	}
 
 	return count;
-err_sym:
+ err_sym:
 	kfree(elem->symname);
-err:
+ err:
 	kfree(elem);
 	return ret;
 }
 
 static const struct file_operations otst_fops = {
-	.owner   = THIS_MODULE,
-	.open    = otst_proc_open,
-	.read    = seq_read,
-	.llseek  = seq_lseek,
-	.write   = otst_proc_write,
+	.owner = THIS_MODULE,
+	.open = otst_proc_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.write = otst_proc_write,
 	.release = single_release,
 };
 
 static int __init otst_init(void)
 {
 	struct proc_dir_entry *otst_file;
-	otst_file = proc_create("driver/otst",  S_IWUSR | S_IRUSR,
+	otst_file = proc_create("driver/otst", S_IWUSR | S_IRUSR,
 				NULL, &otst_fops);
 	if (!otst_file)
 		return -ENOMEM;
@@ -190,4 +191,3 @@ module_exit(otst_exit);
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION(MODULE_DESC);
 MODULE_AUTHOR("Daniel Borkmann <borkmann@iogearbox.net>");
-
