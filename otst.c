@@ -114,13 +114,13 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
 		if (!elem)
 			return -ENOMEM;
-		elem->probe.pre_handler = otst_handler;
-		elem->probe.post_handler = otst_handler_post_work;
 		elem->symname = kzalloc(count, GFP_KERNEL);
 		if (!elem->symname) {
 			ret = -ENOMEM;
 			goto err;
 		}
+		elem->probe.pre_handler = otst_handler;
+		elem->probe.post_handler = otst_handler_post_work;
 		if (copy_from_user(elem->symname, buffer, count)) {
 			ret = -EFAULT;
 			goto err_sym;
