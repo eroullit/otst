@@ -104,31 +104,34 @@ static int otst_proc_open(struct inode *inode, struct file *file)
 static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 			       size_t count, loff_t * pos)
 {
-	int ret;
-	size_t len;
+	int ret = 0;
+	size_t len = 0;
 	unsigned long flags;
-	struct otst_kprobes_elem *elem;
+	struct otst_kprobes_elem *elem = NULL;
 
 	otst_collect_garbage();
 
 	if (count > 0 && count < 256) {
 		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
-		if (!elem)
-			return -ENOMEM;
+		if (!elem) {
+			ret = -ENOMEM;
+			goto out;
+		}
+
 		elem->symname = kzalloc(count, GFP_KERNEL);
 		if (!elem->symname) {
 			ret = -ENOMEM;
-			goto err;
+			goto out;
 		}
 
 		len = strncpy_from_user(elem->symname, buffer, count);
 
 		if (len == 0) {
 			ret = -ERANGE;
-			goto err_sym;
+			goto out;
 		} else if (len >= count) {
 			ret = -ENAMETOOLONG;
-			goto err_sym;
+			goto out;
 		}
 
 		elem->probe.pre_handler = otst_handler;
@@ -139,29 +142,31 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 			printk(KERN_INFO "%s: %s is no symbol!\n",
 			       MODULE_NAME, elem->probe.symbol_name);
 			ret = -EINVAL;
-			goto err_sym;
+			goto out;
 		}
 		ret = register_kprobe(&elem->probe);
 		if (ret < 0) {
 			printk(KERN_INFO "%s: register_kprobe for %s failed "
 			       "with %d\n", MODULE_NAME,
 			       elem->probe.symbol_name, ret);
-			goto err_sym;
-		} else
+			goto out;
+		} else {
 			printk(KERN_INFO "%s: symbol %s registered!\n",
 			       MODULE_NAME, elem->probe.symbol_name);
+		}
 
 		spin_lock_irqsave(&otst_kprobes_lock, flags);
 		list_add_rcu(&elem->list, &otst_kprobes);
 		spin_unlock_irqrestore(&otst_kprobes_lock, flags);
 	}
 
-	return count;
- err_sym:
-	kfree(elem->symname);
- err:
-	kfree(elem);
-	return ret;
+ out:
+	if (ret) {
+		kfree(elem->symname);
+		kfree(elem);
+	}
+
+	return ret ? ret : count;
 }
 
 static const struct file_operations otst_fops = {
