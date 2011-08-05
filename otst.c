@@ -180,11 +180,9 @@ static const struct file_operations otst_fops = {
 
 static int __init otst_init(void)
 {
-	struct proc_dir_entry *otst_file;
-	otst_file = proc_create("driver/otst", S_IWUSR | S_IRUSR,
-				NULL, &otst_fops);
-	if (!otst_file)
+	if (!proc_create("driver/otst", S_IWUSR | S_IRUSR, NULL, &otst_fops))
 		return -ENOMEM;
+
 	printk(KERN_INFO "%s: %s loaded!\n", MODULE_NAME, MODULE_DESC);
 	return 0;
 }
