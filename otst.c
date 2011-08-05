@@ -29,6 +29,7 @@
 #include <linux/kallsyms.h>
 
 #define MODULE_NAME "otst"
+#define MODULE_PROC "driver/"MODULE_NAME
 #define MODULE_DESC "one-time stacktrace driver"
 
 struct otst_kprobes_elem {
@@ -180,7 +181,7 @@ static const struct file_operations otst_fops = {
 
 static int __init otst_init(void)
 {
-	if (!proc_create("driver/otst", S_IWUSR | S_IRUSR, NULL, &otst_fops))
+	if (!proc_create(MODULE_PROC, S_IWUSR | S_IRUSR, NULL, &otst_fops))
 		return -ENOMEM;
 
 	printk(KERN_INFO "%s: %s loaded!\n", MODULE_NAME, MODULE_DESC);
@@ -190,7 +191,7 @@ static int __init otst_init(void)
 static void __exit otst_exit(void)
 {
 	otst_collect_garbage();
-	remove_proc_entry("driver/otst", NULL);
+	remove_proc_entry(MODULE_PROC, NULL);
 	printk(KERN_INFO "%s: removed!\n", MODULE_NAME);
 }
 
