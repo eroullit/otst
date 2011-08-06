@@ -1,0 +1,63 @@
+Linux kernel one-time stacktrace module - What is it?
+/////////////////////////////////////////////////////
+
+The Linux one-time stacktrace (otst) module can be used to generate stacktraces
+during runtime for debugging purpose. A symbol can be written to the file 
+/proc/driver/otst, e.g. ...
+
+# echo "netif_rx" > /proc/driver/otst
+
+... thus on the netxt call of the function netif_rx, a stacktrace is being
+generated _once_, thus you are able to see the calling context of your function.
+To show currently traced functions, use:
+
+# cat /proc/driver/otst
+
+More than one function can be traced at a time.
+
+Example output:
+
+[   83.267411] otst: one-time stacktrace driver loaded!
+[   95.591140] otst: symbol netif_rx registered!
+[  121.770022] otst: triggered stacktrace for symbol netif_rx at 0xffffffff814c0050:
+[  121.770027] Pid: 0, comm: kworker/0:1 Not tainted 3.0.0-rc1+ #3
+[  121.770030] Call Trace:
+[  121.770033]  <#DB>  [<ffffffffa002838b>] otst_handler+0x2b/0x30 [otst]
+[  121.770047]  [<ffffffff815ba4a7>] aggr_pre_handler+0x57/0xb0
+[  121.770053]  [<ffffffff814c0050>] ? net_rx_action+0x2e0/0x2e0
+[  121.770057]  [<ffffffff815b960c>] kprobe_exceptions_notify+0x3fc/0x460
+[  121.770062]  [<ffffffff815ba166>] notifier_call_chain+0x56/0x80
+[  121.770067]  [<ffffffff815ba1ca>] atomic_notifier_call_chain+0x1a/0x20
+[  121.770071]  [<ffffffff815ba1fe>] notify_die+0x2e/0x30
+[  121.770075]  [<ffffffff815b7263>] do_int3+0x63/0xd0
+[  121.770079]  [<ffffffff815b6a88>] int3+0x28/0x40
+[  121.770083]  [<ffffffff814c0051>] ? netif_rx+0x1/0x190
+[  121.770086]  <<EOE>>  <IRQ>  [<ffffffff814c0352>] ? netif_rx_ni+0x12/0x30
+[  121.770094]  [<ffffffff814f69b9>] ip_dev_loopback_xmit+0x79/0xa0
+[  121.770098]  [<ffffffff814f7930>] ip_mc_output+0x250/0x260
+[  121.770102]  [<ffffffff814b1353>] ? __alloc_skb+0x83/0x170
+[  121.770106]  [<ffffffff814f6a09>] ip_local_out+0x29/0x30
+[  121.770111]  [<ffffffff81528aeb>] igmp_send_report+0x1db/0x210
+[  121.770117]  [<ffffffff81087d78>] ? sched_clock_cpu+0xb8/0x110
+[  121.770121]  [<ffffffff81529380>] igmp_timer_expire+0x100/0x130
+[  121.770125]  [<ffffffff8104e2e2>] ? scheduler_tick+0x132/0x2b0
+[  121.770130]  [<ffffffff8106e8aa>] run_timer_softirq+0x16a/0x390
+[  121.770134]  [<ffffffff81529280>] ? ip_mc_destroy_dev+0x80/0x80
+[  121.770139]  [<ffffffff8102830d>] ? lapic_next_event+0x1d/0x30
+[  121.770144]  [<ffffffff8106577f>] __do_softirq+0xbf/0x200
+[  121.770148]  [<ffffffff81085967>] ? hrtimer_interrupt+0x127/0x210
+[  121.770153]  [<ffffffff815bf51c>] call_softirq+0x1c/0x30
+[  121.770157]  [<ffffffff8100d2e5>] do_softirq+0x65/0xa0
+[  121.770161]  [<ffffffff81065595>] irq_exit+0xb5/0xc0
+[  121.770165]  [<ffffffff815bfe5e>] smp_apic_timer_interrupt+0x6e/0x99
+[  121.770170]  [<ffffffff815becd3>] apic_timer_interrupt+0x13/0x20
+[  121.770172]  <EOI>  [<ffffffff81013e1d>] ? mwait_idle+0xad/0x1c0
+[  121.770180]  [<ffffffff815ba1ca>] ? atomic_notifier_call_chain+0x1a/0x20
+[  121.770185]  [<ffffffff8100b0b7>] cpu_idle+0xb7/0x110
+[  121.770190]  [<ffffffff815ae4a1>] start_secondary+0x1c0/0x1c7
+[  174.500038] otst: symbol netif_rx unregistered!
+
+For questions, bugs, patches write a mail to:
+
+  Daniel Borkmann <borkmann@iogearbox.net>
+
