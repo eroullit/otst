@@ -1,6 +1,7 @@
 /*
  * otst: one-time stacktrace module
- * Copyright (C) 2011 Daniel Borkmann <borkmann@iogearbox.net>
+ * Copyright (C) 2011 	Daniel Borkmann <borkmann@iogearbox.net>
+ * 		 	Emmanuel Roullit <emmanuel@netsniff-ng.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -190,3 +191,4 @@ module_exit(otst_exit);
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION(MODULE_DESC);
 MODULE_AUTHOR("Daniel Borkmann <borkmann@iogearbox.net>");
+MODULE_AUTHOR("Emmanuel Roullit <emmanuel@netsniff-ng.org>");
