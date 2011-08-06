@@ -33,7 +33,7 @@
 #define MODULE_DESC "one-time stacktrace driver"
 
 struct otst_kprobes_elem {
-	char *symname;
+	char symname[256];
 	struct kprobe probe;
 	struct list_head list;
 };
@@ -110,58 +110,48 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 
 	otst_collect_garbage();
 
-	if (count > 0 && count < 256) {
-		elem = kzalloc(sizeof(*elem), GFP_KERNEL);
-		if (!elem) {
-			ret = -ENOMEM;
-			goto out;
-		}
-
-		elem->symname = kzalloc(count, GFP_KERNEL);
-		if (!elem->symname) {
-			ret = -ENOMEM;
-			goto out;
-		}
-
-		len = strncpy_from_user(elem->symname, buffer, count);
-
-		if (len == 0) {
-			ret = -ERANGE;
-			goto out;
-		} else if (len >= count) {
-			ret = -ENAMETOOLONG;
-			goto out;
-		}
-
-		elem->probe.pre_handler = otst_handler;
-		elem->probe.post_handler = otst_handler_post_work;
-		elem->probe.symbol_name = elem->symname;
-
-		if (!kallsyms_lookup_name(elem->probe.symbol_name)) {
-			printk(KERN_INFO "%s: %s is no symbol!\n",
-			       MODULE_NAME, elem->probe.symbol_name);
-			ret = -EINVAL;
-			goto out;
-		}
-		ret = register_kprobe(&elem->probe);
-		if (ret < 0) {
-			printk(KERN_INFO "%s: register_kprobe for %s failed "
-			       "with %d\n", MODULE_NAME,
-			       elem->probe.symbol_name, ret);
-			goto out;
-		} else {
-			printk(KERN_INFO "%s: symbol %s registered!\n",
-			       MODULE_NAME, elem->probe.symbol_name);
-		}
-
-		spin_lock(&otst_kprobes_lock);
-		list_add_rcu(&elem->list, &otst_kprobes);
-		spin_unlock(&otst_kprobes_lock);
+	elem = kzalloc(sizeof(*elem), GFP_KERNEL);
+	if (!elem) {
+		ret = -ENOMEM;
+		goto out;
 	}
+
+	len = strncpy_from_user(elem->symname, buffer, min(count, sizeof(elem->symname) - 1));
+
+	if (len < 0) {
+		ret = -EFAULT;
+		goto out;
+	}
+
+	elem->symname[len] = '\0';
+
+	elem->probe.pre_handler = otst_handler;
+	elem->probe.post_handler = otst_handler_post_work;
+	elem->probe.symbol_name = elem->symname;
+
+	if (!kallsyms_lookup_name(elem->probe.symbol_name)) {
+		printk(KERN_INFO "%s: %s is no symbol!\n",
+		       MODULE_NAME, elem->probe.symbol_name);
+		ret = -EINVAL;
+		goto out;
+	}
+	ret = register_kprobe(&elem->probe);
+	if (ret < 0) {
+		printk(KERN_INFO "%s: register_kprobe for %s failed "
+		       "with %d\n", MODULE_NAME,
+		       elem->probe.symbol_name, ret);
+		goto out;
+	} else {
+		printk(KERN_INFO "%s: symbol %s registered!\n",
+		       MODULE_NAME, elem->probe.symbol_name);
+	}
+
+	spin_lock(&otst_kprobes_lock);
+	list_add_rcu(&elem->list, &otst_kprobes);
+	spin_unlock(&otst_kprobes_lock);
 
  out:
 	if (ret) {
-		kfree(elem->symname);
 		kfree(elem);
 	}
 
