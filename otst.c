@@ -13,7 +13,7 @@
  * GNU General Public License for more details.
  *
  * cat /proc/driver/otst ... to show currently traced syms
- * echo "netif_rx" > /proc/driver/otst ... to add a symbol for trace
+ * echo -n "netif_rx" > /proc/driver/otst ... to add a symbol for trace
  */
 
 #include <linux/kernel.h>
