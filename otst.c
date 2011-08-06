@@ -116,7 +116,9 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 		goto out;
 	}
 
-	len = strncpy_from_user(elem->symname, buffer, min(count, sizeof(elem->symname) - 1));
+	len =
+	    strncpy_from_user(elem->symname, buffer,
+			      min(count, sizeof(elem->symname) - 1));
 
 	if (len < 0) {
 		ret = -EFAULT;
@@ -138,8 +140,7 @@ static ssize_t otst_proc_write(struct file *file, const char __user * buffer,
 	ret = register_kprobe(&elem->probe);
 	if (ret < 0) {
 		printk(KERN_INFO "%s: register_kprobe for %s failed "
-		       "with %d\n", MODULE_NAME,
-		       elem->probe.symbol_name, ret);
+		       "with %d\n", MODULE_NAME, elem->probe.symbol_name, ret);
 		goto out;
 	} else {
 		printk(KERN_INFO "%s: symbol %s registered!\n",
