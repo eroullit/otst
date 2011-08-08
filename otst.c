@@ -80,7 +80,6 @@ static void otst_collect_garbage(void)
 			printk(KERN_INFO
 			       "%s: symbol %s unregistered!\n",
 			       MODULE_NAME, elem->symname);
-			kfree(elem->symname);
 			kfree(elem);
 		}
 	} while (found);
