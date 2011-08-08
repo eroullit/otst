@@ -77,6 +77,7 @@ static void otst_collect_garbage(void)
 			spin_lock_irqsave(&otst_kprobes_lock, flags);
 			list_del_rcu(&elem->list);
 			spin_unlock_irqrestore(&otst_kprobes_lock, flags);
+			synchronize_rcu();
 			kfree(elem->symname);
 			kfree(elem);
 		}
